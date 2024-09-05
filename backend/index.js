@@ -2,9 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const { Pool } = require('pg');
-const { key, PORT } = process.env;
 const router = express.Router();
 require('dotenv').config();
+const { key, PORT } = process.env;
 
 app.use(cors());
 app.use(express.json());
@@ -62,7 +62,51 @@ router.post('/posts', async (req, res) => {
     }
   });
 
+  //de la segunda evaluacion:
+
+router.put('/posts/like/:id', async (req, res) => {
+  try {
+    const idModificar = req.params.id;
+    console.log('el id a modificar es', idModificar )
+
+    const queryText = `
+      UPDATE posts SET likes = likes + 1
+      WHERE ID = $1;
+    `;
+    const getResponse = await pool.query(queryText, [idModificar]);
+    res.status(201).json(getResponse);
+  } catch (error) {
+    console.error('Error al modificar datos:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+
+router.delete('/posts/:id', async (req, res) => {
+  try {
+    const idBorrar = req.params.id;
+    console.log('el id a borrar es', idBorrar )
+
+    const queryText = `
+      DELETE FROM posts
+      WHERE ID = $1;
+    `;
+    const getResponse = await pool.query(queryText, [idBorrar]);
+    res.status(201).json(getResponse);
+  } catch (error) {
+    console.error('Error al borrar datos:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+
+
 app.listen(PORT, async () => {
-    console.log(`Server is running on port ${PORT}`);
-    await createTable();
+  console.log(`Server is running on port ${PORT}`);
+  try {
+      await createTable();
+      console.log('tabla creada, si es que no habia sido creada');
+  } catch (error) {
+      console.error('error:', error);
+  }
 });
